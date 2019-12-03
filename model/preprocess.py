@@ -58,10 +58,10 @@ def padding(X, max_window):
         new_X.append( lis + [0 for i in range(max_window-len(lis))] )
     return new_X
 
-def get_data():
+def get_data(file='smalldata.csv'):
     stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
     
-    with open('smalldata.csv',encoding="utf8") as words_file:
+    with open(file,encoding="utf8") as words_file:
         csv_reader = csv.DictReader(words_file, delimiter = ',')
         data = []
         for row in csv_reader:

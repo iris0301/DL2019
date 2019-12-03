@@ -22,8 +22,9 @@ def get_CNN_model(num_unit, num_window, vocab_size):
     model.add(Embedding(input_dim=vocab_size, output_dim=num_unit, input_length=num_window))
     model.add(Conv1D(filters=64, kernel_size=5, padding='causal', activation='relu', strides=1))
     model.add(GlobalMaxPooling1D())
-    model.add(Dropout(0.7))
+    model.add(Dropout(0.5))
     model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(3, activation='softmax'))
     
     optimizer = tf.keras.optimizers.Adam(0.01) # optimizer

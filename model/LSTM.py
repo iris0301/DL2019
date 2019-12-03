@@ -6,12 +6,12 @@ from preprocess import *
 
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional, Activation, Conv1D, MaxPooling1D
+from tensorflow.keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional, Activation, Flatten
 from tensorflow.keras.losses import CategoricalCrossentropy
 
 # tweets.db dictionary
 
-def get_CNNLSTM_model(num_unit, num_window, vocab_size):
+def get_LSTM_model(num_unit, num_window, vocab_size):
     """
     Return the keras LSTM model for tweet sentiment analysis
     :param num_unit: dimensionality of the output space of LSTM
@@ -20,14 +20,13 @@ def get_CNNLSTM_model(num_unit, num_window, vocab_size):
     """
     model = Sequential()
     model.add(Embedding(input_dim=vocab_size, output_dim=num_unit, input_length=num_window))
-    model.add(Conv1D(filters=64, kernel_size=5, activation='relu', padding='causal'))
-    model.add(MaxPooling1D(pool_size=2))
-    model.add(Dropout(0.7))
     LSTM_layer_1 = LSTM(num_unit, return_sequences=True)
     model.add(Bidirectional(LSTM_layer_1))
     model.add(Bidirectional(LSTM(num_unit)))
-    model.add(Dense(3))
-    model.add(Activation('softmax'))
+    model.add(Flatten())
+    model.add(Dropout(0.5))
+    model.add(Dense(3, activation='softmax'))
+
     optimizer = tf.keras.optimizers.Adam(0.01) # optimizer
     model.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer)
     return model
@@ -46,7 +45,7 @@ if __name__ == '__main__':
     num_window =  X_train_id.shape[1]
     vocab_size = len(word_dict)
 
-    model = get_CNNLSTM_model(num_unit, num_window, vocab_size+1)
+    model = get_LSTM_model(num_unit, num_window, vocab_size+1)
     model.fit(X_train_id, y_train, batch_size=20, 
                 epochs=5, verbose=1)
     res = model.predict_classes(X_test_id)
