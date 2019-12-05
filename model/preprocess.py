@@ -152,4 +152,73 @@ def get_data(file='smalldata.csv'):
     X_test_id = padding(X_test_id, max_window)
 
     return X_train_id, X_test_id, y_train, y_test, word_dict
+
+
+def data_100k(file='tweets_100k.csv'):
+    stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
+    
+    with open(file,encoding="utf8") as words_file:
+        csv_reader = csv.DictReader(words_file, delimiter = ',')
+        data = []
+        for row in csv_reader:
+            cleaned_row = []
+            clean_text = clean(row['Text'],'',stop_word)
+            
+            if len(clean_text) == 0:
+                continue
+            
+            cleaned_row.append(clean_text)
+            cleaned_row.append(row['Sentiment'])
+            data.append(np.array(cleaned_row))
+        data = np.array(data)
+    
+    X = data[:,0]
+    Y = data[:,1]
+   
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle = False)
+    
+    word_dict = dict()
+    word_id = 0
+    for ele in X:
+        ele = ele.split()
+        for word in ele:
+            if word not in word_dict:
+                word_id += 1    # 0 for padding
+                word_dict[word] = word_id
+
+    max_window = 0  # maximum length of tweet      
+    
+    X_train_id = []
+    
+    i = 0
+    for ele in X_train:
+        ele = ele.split()
+        max_window = max(max_window, len(ele))
+        temp = []
+        for word in ele:
+            i=i+1
+            temp.append(word_dict[word])
+        X_train_id.append(temp)
+    X_test_id = []
+    
+    for ele in X_test:
+        ele = ele.split()
+        max_window = max(max_window, len(ele))
+        temp = []
+        for word in ele:
+            temp.append(word_dict[word])
+        X_test_id.append(temp)
+    #X_test_id = np.array(X_test_id)
+    #X_train_id = np.array(X_train_id)
+    
+    '''
+    X_train: training tweets
+    X_test: testing tweets
+    y_train: labels/sentiments of X_train
+    y_test: labels/sentiments of X_test
+    '''
+    X_train_id = padding(X_train_id, max_window)
+    X_test_id = padding(X_test_id, max_window)
+
+    return X_train_id, X_test_id, y_train, y_test, word_dict
     
