@@ -33,7 +33,7 @@ def get_LSTM_model(num_unit, num_window, vocab_size):
 
 
 if __name__ == '__main__':
-    X_train_id, X_test_id, y_train, y_test, word_dict = get_data()
+    X_train_id, X_test_id, y_train, y_test, word_dict = get_data('data1.csv')
 
     X_train_id = np.asarray(X_train_id)
     X_test_id = np.asarray(X_test_id)

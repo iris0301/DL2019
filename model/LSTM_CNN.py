@@ -36,7 +36,7 @@ def get_LSTM_model(num_unit, num_window, vocab_size):
 
 
 if __name__ == '__main__':
-    X_train_id, X_test_id, y_train, y_test, word_dict = get_data()
+    X_train_id, X_test_id, y_train, y_test, word_dict = get_data('data1.csv')
 
     X_train_id = np.asarray(X_train_id)
     X_test_id = np.asarray(X_test_id)
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     model = get_LSTM_model(num_unit, num_window, vocab_size+1)
     model.fit(X_train_id, y_train, batch_size=20, 
-                epochs=5, verbose=1)
+                epochs=1, verbose=1)
     res = model.predict_classes(X_test_id)
 
     m_acc = tf.keras.metrics.Accuracy()
