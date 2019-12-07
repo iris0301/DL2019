@@ -28,15 +28,17 @@ args = parser.parse_args()
 
 # tweets.db dictionary
 
-def voting(inputs, model1, model2, model3, model4, model5):
+def voting(inputs, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN):
     """
     Getting categorical predictions via voting
     """
-    pred1 = model1.predict_classes(inputs)
-    pred2 = model2.predict_classes(inputs)
-    pred3 = model3.predict_classes(inputs)
-    pred4 = model4.predict_classes(inputs)
-    pred5 = model5.predict_classes(inputs)
+    pred1 = model_LSTM.predict_classes(inputs)
+    pred2 = model_Attention_LSTM.predict(inputs)
+    pred2 = tf.argmax(pred2, 1)
+    pred3 = model_CNN_LSTM.predict_classes(inputs)
+    pred4 = model_Attention.predict(inputs)
+    pred4 = tf.argmax(pred4, 1)
+    pred5 = model_CNN.predict_classes(inputs)
 
     res = [0 for _ in range(pred1.shape[0])]
     for i in range(pred1.shape[0]):
@@ -55,7 +57,8 @@ def test(inputs, y_true, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model
     print ("\n")
 
     print("model_Attention_LSTM: ")
-    res = model_Attention_LSTM.predict_classes(inputs)
+    res = model_Attention_LSTM.predict(inputs)
+    res = tf.argmax(res, 1)
     precision, recall, f1, _ = score(y_true, res, average='weighted')
     print ("Precision: %f"%precision)
     print ("Recall: %f"%recall)
@@ -71,7 +74,8 @@ def test(inputs, y_true, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model
     print ("\n")
 
     print("model_Attention: ")
-    res = model_Attention.predict_classes(inputs)
+    res = model_Attention.predict(inputs)
+    res = tf.argmax(res, 1)
     precision, recall, f1, _ = score(y_true, res, average='weighted')
     print ("Precision: %f"%precision)
     print ("Recall: %f"%recall)
@@ -149,7 +153,30 @@ if __name__ == '__main__':
             model_CNN.fit(X_train_id, y_train, batch_size=batch_size, 
                         epochs=epoch, verbose=1)
             save()
+
     if args.mode == 'test':
+        checkpoint = tf.train.Checkpoint(model_LSTM=model_LSTM, model_Attention_LSTM=model_Attention_LSTM,
+                                        model_CNN_LSTM=model_CNN_LSTM, model_Attention=model_Attention, model_CNN=model_CNN)
+        manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=1)
         checkpoint.restore(manager.latest_checkpoint)
         test(X_test_id, y_test, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN)
+    
+    if args.mode == 'trump':
+        checkpoint = tf.train.Checkpoint(model_LSTM=model_LSTM, model_Attention_LSTM=model_Attention_LSTM,
+                                        model_CNN_LSTM=model_CNN_LSTM, model_Attention=model_Attention, model_CNN=model_CNN)
+        manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=1)
+        checkpoint.restore(manager.latest_checkpoint)
+
+        x = get_trump(word_dict)
+        
+        res = voting(x, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN)
+
+        pos = tf.reduce_sum(tf.cast(tf.equal(res, 2), tf.int32))
+        neu = tf.reduce_sum(tf.cast(tf.equal(res, 1), tf.int32))
+        neg = tf.reduce_sum(tf.cast(tf.equal(res, 0), tf.int32))
+        print ("For tweets about Donald Trump's impeachment:")
+        print ("Positive: %f"%(pos/(pos+neu+neg)))
+        print ("Neutral: %f"%(neu/(pos+neu+neg)))
+        print ("Negative: %f"%(neg/(pos+neu+neg)))
+
     

@@ -53,8 +53,44 @@ def clean(text,emoji,stop_word):
 def padding(X, max_window):
     new_X = []
     for lis in X:
-        new_X.append( lis + [0 for i in range(max_window-len(lis))] )
+        if (len(lis)<=max_window):
+            new_X.append( lis + [0 for i in range(max_window-len(lis))] )
+        else:
+            new_X.append(lis[:max_window])
     return new_X
+
+def get_trump(word_dict, file='trump.csv'):
+    stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
+    
+    with open(file,encoding="utf8") as words_file:
+        csv_reader = csv.DictReader(words_file, delimiter = ',')
+        data = []
+        for row in csv_reader:
+            cleaned_row = []
+            clean_text = clean(row['Text'],row['Emoji'],stop_word)
+
+            if len(clean_text) == 0:
+                continue
+            cleaned_row.append(clean_text)
+            data.append(np.array(cleaned_row))
+        data = np.array(data)
+    x =  data[:,0]
+
+    max_window = 0  # maximum length of tweet      
+    
+    X_train_id = []
+    
+    i = 0
+    for ele in x:
+        ele = ele.split()
+        max_window = max(max_window, len(ele))
+        temp = []
+        for word in ele:
+            i=i+1
+            temp.append(word_dict[word])
+        X_train_id.append(temp)
+    X_train_id = padding(X_train_id, 64)
+    return np.array(X_train_id)
 
 def get_data(file='data250k.csv'):
     stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
