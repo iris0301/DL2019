@@ -13,9 +13,17 @@ from LSTM import *
 
 import argparse
 
+# Killing optional CPU driver warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+gpu_available = tf.test.is_gpu_available()
+print("GPU Available: ", gpu_available)
+
 parser = argparse.ArgumentParser(description='Voting')
 parser.add_argument('--mode', type=str, default='test',
                     help='Can be "train" or "test"')
+parser.add_argument('--device', type=str, default='GPU:0' if gpu_available else 'CPU:0',
+                    help='specific the device of computation eg. CPU:0, GPU:0, GPU:1, GPU:2, ... ')
 args = parser.parse_args()
 
 # tweets.db dictionary
@@ -32,7 +40,7 @@ def voting(inputs, model1, model2, model3, model4, model5):
 
     res = [0 for _ in range(pred1.shape[0])]
     for i in range(pred1.shape[0]):
-        tmp_lis = [pred1, pred2, pred3, pred4, pred5]
+        tmp_lis = [pred1[i], pred2[i], pred3[i], pred4[i], pred5[i]]
         res[i] = np.argmax(np.bincount(tmp_lis))
     
     return tf.convert_to_tensor(res)
@@ -113,31 +121,34 @@ if __name__ == '__main__':
     # model saving management
     checkpoint_dir = './checkpoints'
     checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-    checkpoint = tf.train.Checkpoint(model_LSTM=model_LSTM, model_Attention_LSTM=model_Attention_LSTM,
-                                    model_CNN_LSTM=model_CNN_LSTM, model_Attention=model_Attention, model_CNN=model_CNN)
-    manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=1)
+    def save():
+        checkpoint = tf.train.Checkpoint(model_LSTM=model_LSTM, model_Attention_LSTM=model_Attention_LSTM,
+                                        model_CNN_LSTM=model_CNN_LSTM, model_Attention=model_Attention, model_CNN=model_CNN)
+        manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=1)
+        manager.save()
 
     if args.mode == 'train':
         # Training
-        model_LSTM.fit(X_train_id, y_train, batch_size=batch_size, 
-                    epochs=epoch, verbose=1)
-        manager.save()
+        with tf.device('/device:' + args.device):
+            model_LSTM.fit(X_train_id, y_train, batch_size=batch_size, 
+                        epochs=epoch, verbose=1)
+            save()
 
-        model_Attention_LSTM.fit(X_train_id, y_train, batch_size=batch_size, 
-                    epochs=epoch, verbose=1)
-        manager.save()
+            model_Attention_LSTM.fit(X_train_id, y_train, batch_size=batch_size, 
+                        epochs=epoch, verbose=1)
+            save()
 
-        model_CNN_LSTM.fit(X_train_id, y_train, batch_size=batch_size, 
-                    epochs=epoch, verbose=1)
-        manager.save()
+            model_CNN_LSTM.fit(X_train_id, y_train, batch_size=batch_size, 
+                        epochs=epoch, verbose=1)
+            save()
 
-        model_Attention.fit(X_train_id, y_train, batch_size=batch_size, 
-                    epochs=epoch, verbose=1)
-        manager.save()
+            model_Attention.fit(X_train_id, y_train, batch_size=batch_size, 
+                        epochs=epoch, verbose=1)
+            save()
 
-        model_CNN.fit(X_train_id, y_train, batch_size=batch_size, 
-                    epochs=epoch, verbose=1)
-        manager.save()
+            model_CNN.fit(X_train_id, y_train, batch_size=batch_size, 
+                        epochs=epoch, verbose=1)
+            save()
     if args.mode == 'test':
         checkpoint.restore(manager.latest_checkpoint)
         test(X_test_id, y_test, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN)

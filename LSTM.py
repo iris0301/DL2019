@@ -57,7 +57,7 @@ if __name__ == '__main__':
     checkpoint = tf.train.Checkpoint(model=model)
     manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=1)
     
-    #manager.save()
+    manager.save()
 
     checkpoint.restore(manager.latest_checkpoint) 
 

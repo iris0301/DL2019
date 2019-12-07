@@ -8,7 +8,6 @@ from tensorflow.keras.preprocessing import sequence
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional, Activation, Flatten, Attention, Concatenate
 from tensorflow.keras.losses import CategoricalCrossentropy
-from keras_multi_head import MultiHeadAttention
 
 # tweets.db dictionary
 
