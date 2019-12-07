@@ -8,28 +8,8 @@ from tensorflow.keras.preprocessing import sequence
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional, Activation, Flatten, Attention
 from tensorflow.keras.losses import CategoricalCrossentropy
-from keras_multi_head import MultiHeadAttention
 
 # tweets.db dictionary
-
-def get_Attention_model(num_unit, num_window, vocab_size):
-    """
-    Return the keras LSTM model for tweet sentiment analysis
-    :param num_unit: dimensionality of the output space of LSTM
-    :param num_window: the length of each padded tweet
-    :param vocab_size: the number of vocabularies
-    """
-    model = Sequential()
-    model.add(Embedding(input_dim=vocab_size, output_dim=num_unit, input_length=num_window))
-    model.add(Attention())
-    model.add(Attention())
-    model.add(Flatten())
-    model.add(Dropout(0.5))
-    model.add(Dense(3, activation='softmax'))
-
-    optimizer = tf.keras.optimizers.Adam(0.01) # optimizer
-    model.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer)
-    return model
 
 class Attention_Model(tf.keras.Model):
     def __init__(self, num_unit, num_window, vocab_size, head_num):
@@ -79,7 +59,7 @@ if __name__ == '__main__':
     model.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer)
 
     model.fit(X_train_id, y_train, batch_size=20, 
-                epochs=2, verbose=1)
+                epochs=1, verbose=1)
     res = model.predict(X_test_id)
     res = tf.argmax(res, 1)
 
