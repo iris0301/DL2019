@@ -56,7 +56,7 @@ def padding(X, max_window):
         new_X.append( lis + [0 for i in range(max_window-len(lis))] )
     return new_X
 
-def get_data(file='smalldata.csv'):
+def get_data(file='data250k.csv'):
     stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
     
     with open(file,encoding="utf8") as words_file:
@@ -99,6 +99,14 @@ def get_data(file='smalldata.csv'):
             data.append(np.array(cleaned_row))
         data = np.array(data)
     
+    with open('trump.csv',encoding="utf8") as words_file:
+        input_reader = csv.DictReader(words_file, delimiter = ',')
+        trump = []
+        for row in input_reader:
+            cleaned_row = []
+            clean_text = clean(row['Text'],row['Emoji'],stop_word)
+            trump.append(clean_text)
+            
     X = data[:,0]
     Y = data[:,1]
     Y = [int(label)+1 for label in Y]   # 0, 1, 2
@@ -113,6 +121,14 @@ def get_data(file='smalldata.csv'):
             if word not in word_dict:
                 word_id += 1    # 0 for padding
                 word_dict[word] = word_id
+    print(len(word_dict))
+    for ele in trump:
+        ele = ele.split()
+        for word in ele:
+            if word not in word_dict:
+                word_id += 1  
+                word_dict[word] = word_id 
+    print(len(word_dict))
 
     max_window = 0  # maximum length of tweet      
     
@@ -152,7 +168,7 @@ def get_data(file='smalldata.csv'):
 
 
 
-def data_noemoji(file='smalldata.csv'):
+def data_noemoji(file='data250k.csv'):
     stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
     
     with open(file,encoding="utf8") as words_file:
