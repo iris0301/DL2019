@@ -3,6 +3,7 @@ import sys
 import tensorflow as tf
 import numpy as np
 from preprocess import *
+import csv
 
 from sklearn.metrics import precision_recall_fscore_support as score
 from Attention_LSTM import *
@@ -51,6 +52,9 @@ def test(inputs, y_true, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model
     print("model_LSTM: ")
     res = model_LSTM.predict_classes(inputs)
     precision, recall, f1, _ = score(y_true, res, average='weighted')
+    m_acc = tf.keras.metrics.Accuracy()
+    m_acc.update_state(res, y_true)
+    print ("Accuracy: %f"%m_acc.result().numpy())
     print ("Precision: %f"%precision)
     print ("Recall: %f"%recall)
     print ("F1 score: %f"%f1)
@@ -60,6 +64,9 @@ def test(inputs, y_true, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model
     res = model_Attention_LSTM.predict(inputs)
     res = tf.argmax(res, 1)
     precision, recall, f1, _ = score(y_true, res, average='weighted')
+    m_acc = tf.keras.metrics.Accuracy()
+    m_acc.update_state(res, y_true)
+    print ("Accuracy: %f"%m_acc.result().numpy())
     print ("Precision: %f"%precision)
     print ("Recall: %f"%recall)
     print ("F1 score: %f"%f1)
@@ -68,6 +75,9 @@ def test(inputs, y_true, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model
     print("model_CNN_LSTM: ")
     res = model_CNN_LSTM.predict_classes(inputs)
     precision, recall, f1, _ = score(y_true, res, average='weighted')
+    m_acc = tf.keras.metrics.Accuracy()
+    m_acc.update_state(res, y_true)
+    print ("Accuracy: %f"%m_acc.result().numpy())
     print ("Precision: %f"%precision)
     print ("Recall: %f"%recall)
     print ("F1 score: %f"%f1)
@@ -77,6 +87,9 @@ def test(inputs, y_true, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model
     res = model_Attention.predict(inputs)
     res = tf.argmax(res, 1)
     precision, recall, f1, _ = score(y_true, res, average='weighted')
+    m_acc = tf.keras.metrics.Accuracy()
+    m_acc.update_state(res, y_true)
+    print ("Accuracy: %f"%m_acc.result().numpy())
     print ("Precision: %f"%precision)
     print ("Recall: %f"%recall)
     print ("F1 score: %f"%f1)
@@ -85,6 +98,9 @@ def test(inputs, y_true, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model
     print("model_CNN: ")
     res = model_CNN.predict_classes(inputs)
     precision, recall, f1, _ = score(y_true, res, average='weighted')
+    m_acc = tf.keras.metrics.Accuracy()
+    m_acc.update_state(res, y_true)
+    print ("Accuracy: %f"%m_acc.result().numpy())
     print ("Precision: %f"%precision)
     print ("Recall: %f"%recall)
     print ("F1 score: %f"%f1)
@@ -170,11 +186,24 @@ if __name__ == '__main__':
         x = get_trump(word_dict)
         
         res = voting(x, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN)
+        with open('trump_output.csv', 'w', newline='') as csvfile:
+            fieldnames = ['Text', 'Sentiment']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for i in range(len(res)):
+                output_sentiment = tf.dtypes.cast(res[i], tf.int32)
+                output_text = ''
+                for ele in x[i]:
+                    if ele == 0:
+                        break
+                    output_text = output_text+' '+ list(word_dict.keys())[list(word_dict.values()).index(ele)]
+                writer.writerow({'Text': output_text, 'Sentiment': output_sentiment})
+        
 
         pos = tf.reduce_sum(tf.cast(tf.equal(res, 2), tf.int32))
         neu = tf.reduce_sum(tf.cast(tf.equal(res, 1), tf.int32))
         neg = tf.reduce_sum(tf.cast(tf.equal(res, 0), tf.int32))
-        print ("For tweets about Donald Trump's impeachment:")
+        print ("For tweets about Donald Trump:")
         print ("Positive: %f"%(pos/(pos+neu+neg)))
         print ("Neutral: %f"%(neu/(pos+neu+neg)))
         print ("Negative: %f"%(neg/(pos+neu+neg)))
