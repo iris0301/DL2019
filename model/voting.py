@@ -199,7 +199,6 @@ if __name__ == '__main__':
                     output_text = output_text+' '+ list(word_dict.keys())[list(word_dict.values()).index(ele)]
                 writer.writerow({'Text': output_text, 'Sentiment': output_sentiment})
         
-
         pos = tf.reduce_sum(tf.cast(tf.equal(res, 2), tf.int32))
         neu = tf.reduce_sum(tf.cast(tf.equal(res, 1), tf.int32))
         neg = tf.reduce_sum(tf.cast(tf.equal(res, 0), tf.int32))
