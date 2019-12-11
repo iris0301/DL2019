@@ -181,6 +181,15 @@ if __name__ == '__main__':
         manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=1)
         checkpoint.restore(manager.latest_checkpoint)
         test(X_test_id, y_test, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN)
+        res = voting(X_test_id, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN)
+        m_acc = tf.keras.metrics.Accuracy()
+        m_acc.update_state(res, y_test)
+        precision, recall, f1, _ = score(y_test, res, average='weighted')
+        print (m_acc.result().numpy())
+        print ("Precision: %f"%precision)
+        print ("Recall: %f"%recall)
+        print ("F1 score: %f"%f1)
+        print ("\n")
     
     if args.mode == 'trump':
         # model voting on Trump tweets to get sentiment analysis
