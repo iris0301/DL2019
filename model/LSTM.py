@@ -22,8 +22,8 @@ def get_LSTM_model(num_unit, num_window, vocab_size):
     """
     model = Sequential()
     model.add(Embedding(input_dim=vocab_size, output_dim=num_unit, input_length=num_window))
-    LSTM_layer_1 = LSTM(num_unit, return_sequences=True)
-    model.add(Bidirectional(LSTM_layer_1))
+    LSTM_layer_1 = LSTM(num_unit, return_sequences=True) # LSTM layer
+    model.add(Bidirectional(LSTM_layer_1)) # bidirectional layer
     model.add(Bidirectional(LSTM(num_unit)))
     model.add(Flatten())
     model.add(Dropout(0.5))
@@ -35,6 +35,7 @@ def get_LSTM_model(num_unit, num_window, vocab_size):
 
 
 if __name__ == '__main__':
+    # get data
     X_train_id, X_test_id, y_train, y_test, word_dict = get_data('smalldata.csv')
 
     X_train_id = np.asarray(X_train_id)

@@ -20,9 +20,11 @@ def get_CNNLSTM_model(num_unit, num_window, vocab_size):
     """
     model = Sequential()
     model.add(Embedding(input_dim=vocab_size, output_dim=num_unit, input_length=num_window))
+    # CNN layer
     model.add(Conv1D(filters=64, kernel_size=5, activation='relu', padding='causal'))
     model.add(MaxPooling1D(pool_size=2))
     model.add(Dropout(0.5))
+    # bidirectional LSTM
     LSTM_layer_1 = LSTM(num_unit, return_sequences=True)
     model.add(Bidirectional(LSTM_layer_1))
     model.add(Bidirectional(LSTM(num_unit)))
@@ -36,6 +38,7 @@ def get_CNNLSTM_model(num_unit, num_window, vocab_size):
 
 
 if __name__ == '__main__':
+    # get data
     X_train_id, X_test_id, y_train, y_test, word_dict = get_data('data1.csv')
 
     X_train_id = np.asarray(X_train_id)
@@ -44,10 +47,12 @@ if __name__ == '__main__':
     y_train = np.asarray(y_train)
     y_test = np.asarray(y_test)
 
+    # hyper parameters
     num_unit = 50
     num_window =  X_train_id.shape[1]
     vocab_size = len(word_dict)
 
+    # get model
     model = get_CNNLSTM_model(num_unit, num_window, vocab_size+1)
     model.fit(X_train_id, y_train, batch_size=20, 
                 epochs=5, verbose=1)

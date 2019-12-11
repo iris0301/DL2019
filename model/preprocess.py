@@ -21,6 +21,9 @@ def split(word):
     return list(word) 
 
 def clean(text,emoji,stop_word):
+    """
+    Remove unused token from the tweets
+    """
     text = text.lower()
     
     text = ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", text).split()) 
@@ -51,6 +54,9 @@ def clean(text,emoji,stop_word):
     return newtext
 
 def padding(X, max_window):
+    """
+    Pad the input
+    """
     new_X = []
     for lis in X:
         if (len(lis)<=max_window):
@@ -60,6 +66,9 @@ def padding(X, max_window):
     return new_X
 
 def get_trump(word_dict, file='trump.csv'):
+    """
+    Get the trump tweets for testing
+    """
     stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
     
     with open(file,encoding="utf8") as words_file:
@@ -93,6 +102,9 @@ def get_trump(word_dict, file='trump.csv'):
     return np.array(X_train_id)
 
 def get_data(file='data250k.csv'):
+    """
+    Get train and test data from the dataset
+    """
     stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
     
     with open(file,encoding="utf8") as words_file:
@@ -104,7 +116,8 @@ def get_data(file='data250k.csv'):
             
             if len(clean_text) == 0:
                 continue
-                
+            
+            # integrate results of two APIs
             if float(row['Sentiment']) > 0 and int(row['Sentiment140']) == 4:
                 sentiment = 1 #'positive'
             elif float(row['Sentiment']) < 0 and int(row['Sentiment140']) == 0:
@@ -149,6 +162,7 @@ def get_data(file='data250k.csv'):
     
     X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, shuffle = False)
     
+    # create word dictionary
     word_dict = dict()
     word_id = 0
     for ele in X:
@@ -205,6 +219,9 @@ def get_data(file='data250k.csv'):
 
 
 def data_noemoji(file='data250k.csv'):
+    """
+    Create dataset without emoji
+    """
     stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
     
     with open(file,encoding="utf8") as words_file:
@@ -298,6 +315,9 @@ def data_noemoji(file='data250k.csv'):
 
 
 def data_100k(file='tweets_100k.csv'):
+    """
+    Create dataset using file tweets_100k.csv
+    """
     stop_word = [line.rstrip('\r\n') for line in open("stop_words.txt")]
     
     with open(file,encoding="utf8") as words_file:

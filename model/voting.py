@@ -31,7 +31,8 @@ args = parser.parse_args()
 
 def voting(inputs, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN):
     """
-    Getting categorical predictions via voting
+    Getting categorical predictions via voting, 
+    take the result with the most votes
     """
     pred1 = model_LSTM.predict_classes(inputs)
     pred2 = model_Attention_LSTM.predict(inputs)
@@ -44,11 +45,14 @@ def voting(inputs, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Atten
     res = [0 for _ in range(pred1.shape[0])]
     for i in range(pred1.shape[0]):
         tmp_lis = [pred1[i], pred2[i], pred3[i], pred4[i], pred5[i]]
-        res[i] = np.argmax(np.bincount(tmp_lis))
+        res[i] = np.argmax(np.bincount(tmp_lis)) # get the mode number
     
     return tf.convert_to_tensor(res)
 
 def test(inputs, y_true, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN):
+    """
+    Evaluate the model with precision, recall and F1 score as metrics
+    """
     print("model_LSTM: ")
     res = model_LSTM.predict_classes(inputs)
     precision, recall, f1, _ = score(y_true, res, average='weighted')
@@ -171,6 +175,7 @@ if __name__ == '__main__':
             save()
 
     if args.mode == 'test':
+        # evaluate the trained models
         checkpoint = tf.train.Checkpoint(model_LSTM=model_LSTM, model_Attention_LSTM=model_Attention_LSTM,
                                         model_CNN_LSTM=model_CNN_LSTM, model_Attention=model_Attention, model_CNN=model_CNN)
         manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=1)
@@ -178,6 +183,7 @@ if __name__ == '__main__':
         test(X_test_id, y_test, model_LSTM, model_Attention_LSTM, model_CNN_LSTM, model_Attention, model_CNN)
     
     if args.mode == 'trump':
+        # model voting on Trump tweets to get sentiment analysis
         checkpoint = tf.train.Checkpoint(model_LSTM=model_LSTM, model_Attention_LSTM=model_Attention_LSTM,
                                         model_CNN_LSTM=model_CNN_LSTM, model_Attention=model_Attention, model_CNN=model_CNN)
         manager = tf.train.CheckpointManager(checkpoint, checkpoint_dir, max_to_keep=1)
